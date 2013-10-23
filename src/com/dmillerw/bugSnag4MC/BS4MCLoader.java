@@ -1,5 +1,6 @@
 package com.dmillerw.bugSnag4MC;
 
+import java.io.File;
 import java.util.Map;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
@@ -11,6 +12,7 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 public class BS4MCLoader implements IFMLLoadingPlugin {
 
 	public static boolean deobf;
+	public static File coremodLocation;
 	
 	@Override
 	public String[] getLibraryRequestClass() {
@@ -35,6 +37,7 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
 	@Override
 	public void injectData(Map<String, Object> data) {
 		deobf = (Boolean)data.get("runtimeDeobfuscationEnabled");
+		coremodLocation = (File)data.get("coremodLocation");
 	}
 
 }
