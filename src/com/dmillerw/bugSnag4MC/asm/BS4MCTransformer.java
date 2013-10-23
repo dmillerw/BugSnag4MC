@@ -1,9 +1,5 @@
 package com.dmillerw.bugSnag4MC.asm;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Iterator;
 
 import net.minecraft.launchwrapper.IClassTransformer;
@@ -13,14 +9,13 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import com.dmillerw.bugSnag4MC.BS4MCCore;
-import com.dmillerw.bugSnag4MC.BS4MCLoader;
 
 public class BS4MCTransformer implements IClassTransformer {
 
@@ -28,7 +23,10 @@ public class BS4MCTransformer implements IClassTransformer {
 	public static final int FML_MAPPING = 1;
 	
 	public static final String[] CLASS_CRASHREPORT = new String[] {"b", "net.minecraft.crash.CrashReport"};
-	public static final String[] METHOD_TARGET_NAME = new String[] {"h", "populateEnvironment"};
+	public static final String[] FIELD_DESC = new String[] {"a", "description"};
+	public static final String[] FIELD_THROW = new String[] {"b", "cause"};
+	public static final String[] METHOD_POPULATE = new String[] {"h", "populateEnvironment"};
+	public static final String[] METHOD_GET = new String[] {"e", "getCompleteReport"};
 	
 	public static void log(String message) {
 		System.out.println("[" + BS4MCCore.ID + "] " + message);
@@ -52,15 +50,16 @@ public class BS4MCTransformer implements IClassTransformer {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, 0);
 		
-		String targetMethod = "<init>"; // BECAUSE I CAN! THAT'S WHY!
-		String targetDesc = "(Ljava/lang/String;Ljava/lang/Throwable;)V"; // Paramaters of String and Throwable, returns void
-		String targetFieldDesc = "()V";
+		String constructorMethod = "<init>"; // BECAUSE I CAN! THAT'S WHY!
+		String targetClassDesc = "(Ljava/lang/String;Ljava/lang/Throwable;)V"; // Paramaters of String and Throwable, returns void
+		
+		String targetMethodDesc = ("()Ljava/lang/String");
 		
 		Iterator<MethodNode> methods = cn.methods.iterator();
 		while (methods.hasNext()) {
 			MethodNode method = methods.next();
 			
-			if (method.name.equals(targetMethod) && method.desc.equalsIgnoreCase(targetDesc)) {
+			if (method.name.equals(constructorMethod) && method.desc.equalsIgnoreCase(targetClassDesc)) {
 				log("Found CrashReport constructor! Preparing to inject!");
 
 				InsnList methodInstructions = method.instructions;
@@ -71,11 +70,20 @@ public class BS4MCTransformer implements IClassTransformer {
 					if (node.getOpcode() == Opcodes.INVOKESPECIAL && node.getType() == AbstractInsnNode.METHOD_INSN) {
 						MethodInsnNode methodNode = (MethodInsnNode) node;
 						
-						if (methodNode.name.equals(METHOD_TARGET_NAME[obfuscated ? OBFUSCATED : FML_MAPPING]) && methodNode.desc.equals(targetFieldDesc)) {
+						if (methodNode.name.equals(METHOD_POPULATE[obfuscated ? OBFUSCATED : FML_MAPPING]) && methodNode.desc.equals("()V")) {
 							log("Found target node! Preparing to inject!");
 							
-							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
-							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/dmillerw/bugSnag4MC/core/CrashReportHandler", "test", "()V"));
+							// Not working currently, but here so I know what I want done
+//							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
+//							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], FIELD_DESC[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
+//							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], FIELD_THROW[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
+//							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESPECIAL, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], METHOD_GET[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
+
+							// Invoking CrashReportHandler.handleCrashReport(String, Throwable, String);
+							// First String is CrashReport description variable
+							// Throwable is CrashReport cause variable
+							// Second String is CrashReport getCompleteReport method return
+//							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/dmillerw/bugSnag4MC/core/CrashReportHandler", "handleCrashReport", "(Ljava/lang/String;Ljava/lang/Throwable;Ljava/lang/String;)V"));
 							
 							break;
 						}
