@@ -4,8 +4,10 @@ import java.util.Map;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
+import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
 @MCVersion("1.6.4")
+@TransformerExclusions("com.dmillerw.bugSnag4MC")
 public class BS4MCLoader implements IFMLLoadingPlugin {
 
 	public static boolean deobf;
@@ -17,7 +19,7 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
 
 	@Override
 	public String[] getASMTransformerClass() {
-		return null;
+		return new String[] {"com.dmillerw.bugSnag4MC.asm.BS4MCTransformer"};
 	}
 
 	@Override
