@@ -23,10 +23,10 @@ public class BS4MCTransformer implements IClassTransformer {
 	public static final int FML_MAPPING = 1;
 	
 	public static final String[] CLASS_CRASHREPORT = new String[] {"b", "net.minecraft.crash.CrashReport"};
-	public static final String[] FIELD_DESC = new String[] {"a", "description"};
-	public static final String[] FIELD_THROW = new String[] {"b", "cause"};
-	public static final String[] METHOD_POPULATE = new String[] {"h", "populateEnvironment"};
-	public static final String[] METHOD_GET = new String[] {"e", "getCompleteReport"};
+	public static final String[] FIELD_DESC = new String[] {"field_71513_a", "description"};
+	public static final String[] FIELD_THROW = new String[] {"field_71511_b", "cause"};
+	public static final String[] METHOD_POPULATE = new String[] {"func_71504_g", "populateEnvironment"};
+	public static final String[] METHOD_GET = new String[] {"func_71502_e", "getCompleteReport"};
 	
 	public static void log(String message) {
 		System.out.println("[" + BS4MCCore.ID + "] " + message);
@@ -53,7 +53,8 @@ public class BS4MCTransformer implements IClassTransformer {
 		String constructorMethod = "<init>"; // BECAUSE I CAN! THAT'S WHY!
 		String targetClassDesc = "(Ljava/lang/String;Ljava/lang/Throwable;)V"; // Paramaters of String and Throwable, returns void
 		
-		String targetMethodDesc = ("()Ljava/lang/String");
+		String stringDesc = ("Ljava/lang/String;");
+		String throwDesc = ("Ljava/lang/Throwable;");
 		
 		Iterator<MethodNode> methods = cn.methods.iterator();
 		while (methods.hasNext()) {
@@ -73,17 +74,13 @@ public class BS4MCTransformer implements IClassTransformer {
 						if (methodNode.name.equals(METHOD_POPULATE[obfuscated ? OBFUSCATED : FML_MAPPING]) && methodNode.desc.equals("()V")) {
 							log("Found target node! Preparing to inject!");
 							
-							// Not working currently, but here so I know what I want done
-//							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
-//							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], FIELD_DESC[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
-//							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], FIELD_THROW[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
-//							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESPECIAL, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING], METHOD_GET[obfuscated ? OBFUSCATED : FML_MAPPING], targetMethodDesc));
-
-							// Invoking CrashReportHandler.handleCrashReport(String, Throwable, String);
-							// First String is CrashReport description variable
-							// Throwable is CrashReport cause variable
-							// Second String is CrashReport getCompleteReport method return
-//							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/dmillerw/bugSnag4MC/core/CrashReportHandler", "handleCrashReport", "(Ljava/lang/String;Ljava/lang/Throwable;Ljava/lang/String;)V"));
+							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
+							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), FIELD_DESC[obfuscated ? OBFUSCATED : FML_MAPPING], stringDesc));
+							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
+							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), FIELD_THROW[obfuscated ? OBFUSCATED : FML_MAPPING], throwDesc));
+							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
+							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), METHOD_GET[obfuscated ? OBFUSCATED : FML_MAPPING], stringDesc));
+							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/dmillerw/bugSnag4MC/core/CrashReportHandler", "handleCrashReport", "(Ljava/lang/String;Ljava/lang/Throwable;Ljava/lang/String;)V"));
 							
 							break;
 						}
