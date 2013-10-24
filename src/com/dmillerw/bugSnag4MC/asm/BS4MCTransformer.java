@@ -1,98 +1,147 @@
 package com.dmillerw.bugSnag4MC.asm;
 
-import java.util.Iterator;
+import java.util.HashMap;
 
 import net.minecraft.launchwrapper.IClassTransformer;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-import com.dmillerw.bugSnag4MC.BS4MCCore;
+import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 
 public class BS4MCTransformer implements IClassTransformer {
 
-	public static final int OBFUSCATED = 0;
-	public static final int FML_MAPPING = 1;
+	public static final String targetClassName = "com/dmillerw/bugSnag4MC/core/CrashReportHandler";
+	public static final String targetClassType = "L" + targetClassName + ";";
+	public static final String targetMethodName = "handleCrashReport";
+	public static final String targetMethodType = "(%s%s%s)V";
 	
-	public static final String[] CLASS_CRASHREPORT = new String[] {"b", "net.minecraft.crash.CrashReport"};
-	public static final String[] FIELD_DESC = new String[] {"field_71513_a", "description"};
-	public static final String[] FIELD_THROW = new String[] {"field_71511_b", "cause"};
-	public static final String[] METHOD_POPULATE = new String[] {"func_71504_g", "populateEnvironment"};
-	public static final String[] METHOD_GET = new String[] {"func_71502_e", "getCompleteReport"};
+	public HashMap<String, String> typeMap = new HashMap<String, String>();
+	public HashMap<String, String> srgMappings = new HashMap<String, String>();
 	
-	public static void log(String message) {
-		System.out.println("[" + BS4MCCore.ID + "] " + message);
+	private FMLDeobfuscatingRemapper mapper;
+	
+	public boolean obfuscated;
+	
+	public BS4MCTransformer() {
+		srgMappings.put("description", "field_71513_a");
+		srgMappings.put("cause", "field_71511_b");
+		srgMappings.put("populateEnvironment", "func_71504_g");
+		srgMappings.put("getCompleteReport", "func_71502_e");
+		
+		this.mapper = FMLDeobfuscatingRemapper.INSTANCE;
 	}
 	
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] bytes) {
-		if (name.equals(CLASS_CRASHREPORT[OBFUSCATED])) {
-			return transformCrashReport(name, bytes, true);
-		} else if (name.equals(CLASS_CRASHREPORT[FML_MAPPING])) {
-			return transformCrashReport(name, bytes, false);
+		if ("net.minecraft.crash.CrashReport".equals(transformedName)) {
+			this.obfuscated = !name.equals(transformedName);
+			return transformCrashReport(name, bytes);
 		}
 		
-		return bytes;
+		return bytes; // If fails for whatever reason, just return original class
 	}
 
-	private byte[] transformCrashReport(String name, byte[] bytes, boolean obfuscated) {
-		log("Transforming class: " + name);
-		
+	private byte[] transformCrashReport(String name, byte[] bytes) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, 0);
 		
-		String constructorMethod = "<init>"; // BECAUSE I CAN! THAT'S WHY!
-		String targetClassDesc = "(Ljava/lang/String;Ljava/lang/Throwable;)V"; // Paramaters of String and Throwable, returns void
+		MethodNode targetNode = null;
 		
-		String stringDesc = ("Ljava/lang/String;");
-		String throwDesc = ("Ljava/lang/Throwable;");
+		// Fill field type mappings
+		for (FieldNode field : cn.fields) {
+			String srgName = getNodeSrgName(name, field);
 		
-		Iterator<MethodNode> methods = cn.methods.iterator();
-		while (methods.hasNext()) {
-			MethodNode method = methods.next();
-			
-			if (method.name.equals(constructorMethod) && method.desc.equalsIgnoreCase(targetClassDesc)) {
-				log("Found CrashReport constructor! Preparing to inject!");
-
-				InsnList methodInstructions = method.instructions;
-				
-				for (int i=0; i<methodInstructions.size(); i++) {
-					AbstractInsnNode node = methodInstructions.get(i);
-					
-					if (node.getOpcode() == Opcodes.INVOKESPECIAL && node.getType() == AbstractInsnNode.METHOD_INSN) {
-						MethodInsnNode methodNode = (MethodInsnNode) node;
-						
-						if (methodNode.name.equals(METHOD_POPULATE[obfuscated ? OBFUSCATED : FML_MAPPING]) && methodNode.desc.equals("()V")) {
-							log("Found target node! Preparing to inject!");
-							
-							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
-							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), FIELD_DESC[obfuscated ? OBFUSCATED : FML_MAPPING], stringDesc));
-							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
-							methodInstructions.insert(new FieldInsnNode(Opcodes.GETFIELD, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), FIELD_THROW[obfuscated ? OBFUSCATED : FML_MAPPING], throwDesc));
-							methodInstructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
-							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, CLASS_CRASHREPORT[obfuscated ? OBFUSCATED : FML_MAPPING].replace(".", "/"), METHOD_GET[obfuscated ? OBFUSCATED : FML_MAPPING], stringDesc));
-							methodInstructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/dmillerw/bugSnag4MC/core/CrashReportHandler", "handleCrashReport", "(Ljava/lang/String;Ljava/lang/Throwable;Ljava/lang/String;)V"));
-							
-							break;
-						}
-					}
-				}
+			if (getMappedName("description") == srgName || getMappedName("cause") == srgName) {
+				this.typeMap.put(srgName, field.desc);
 			}
 		}
 		
-		ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-		cn.accept(writer);
-		writer.visitEnd();
-		return writer.toByteArray();
+		// Either find target, or store method type mappings
+		for (MethodNode method : cn.methods) {
+			String srgName = getNodeSrgName(name, method);
+			
+			if (method.name.equals("<init>")) {
+				targetNode = method;
+			} else if (getMappedName("getCompleteReport").equals(srgName)) {
+				this.typeMap.put(srgName, method.desc);
+			}
+		}
+		
+		// Finally, go back to target and inject
+		String descriptionType = this.typeMap.get(getMappedName("description"));
+		String causeType = this.typeMap.get(getMappedName("cause"));
+		String getFullType = this.typeMap.get(getMappedName("getCompleteReport"));
+		
+		int index = 0;
+		
+		// While not at target
+		while (!isMethodWithName(targetNode.instructions.get(index), "populateEnvironment")) {
+			++index;
+		}
+		
+		// Once at target
+		String ownerName = name.replace(".", "/");
+		InsnList injectionList = new InsnList();
+		
+		injectionList.insert(new VarInsnNode(ALOAD, 0));
+		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("description"), descriptionType));
+		injectionList.insert(new VarInsnNode(ALOAD, 0));
+		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("cause"), causeType));
+		injectionList.insert(new VarInsnNode(ALOAD, 0));
+		injectionList.insert(new MethodInsnNode(INVOKEVIRTUAL, ownerName, getMappedName("getCompleteReport"), getFullType));
+		injectionList.insert(new MethodInsnNode(INVOKESTATIC, targetClassName, targetMethodName, String.format(targetMethodType, descriptionType, causeType, descriptionType)));
+		
+		// Inject instructions into target method
+		targetNode.instructions.insert(targetNode.instructions.get(index), injectionList);
+		
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		cn.accept(cw);
+		return cw.toByteArray();
+	}
+	
+	private String getNodeSrgName(MethodInsnNode node) {
+		return mapper.mapMethodName(node.owner, node.name, node.desc);
+	}
+	
+	private String getNodeSrgName(String className, MethodNode node) {
+		return mapper.mapMethodName(className, node.name, node.desc);
+	}
+	
+	private String getNodeSrgName(String className, FieldNode node) {
+		return mapper.mapFieldName(className, node.name, node.desc);
+	}
+	
+	private boolean isMethodWithName(AbstractInsnNode node, String name) {
+		if (node.getType() == AbstractInsnNode.METHOD_INSN) {
+			String srgName = getNodeSrgName((MethodInsnNode) node);
+			return srgName.equals(getMappedName(name));
+		}
+		
+		return false;
+	}
+	
+	private String getMappedName(String name) {
+		if (this.obfuscated && this.srgMappings.containsKey(name)) {
+			return srgMappings.get(name);
+		}
+		
+		return name;
 	}
 	
 }
