@@ -1,25 +1,25 @@
 package com.dmillerw.bugSnag4MC.asm;
 
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 
 import net.minecraft.launchwrapper.IClassTransformer;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 
@@ -84,8 +84,10 @@ public class BS4MCTransformer implements IClassTransformer {
 		}
 		
 		// Finally, go back to target and inject
-		String descriptionType = this.typeMap.get(getMappedName("description"));
-		String causeType = this.typeMap.get(getMappedName("cause"));
+//		String descriptionType = this.typeMap.get(getMappedName("description"));
+		String descriptionType = "Ljava/lang/String;";
+//		String causeType = this.typeMap.get(getMappedName("cause"));
+		String causeType = "Ljava/lang/Throwable;";
 		String getFullType = this.typeMap.get(getMappedName("getCompleteReport"));
 		
 		int index = 0;
@@ -99,19 +101,24 @@ public class BS4MCTransformer implements IClassTransformer {
 		String ownerName = name.replace(".", "/");
 		InsnList injectionList = new InsnList();
 		
-		injectionList.insert(new VarInsnNode(ALOAD, 0));
-		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("description"), descriptionType));
-		injectionList.insert(new VarInsnNode(ALOAD, 0));
-		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("cause"), causeType));
-		injectionList.insert(new VarInsnNode(ALOAD, 0));
-		injectionList.insert(new MethodInsnNode(INVOKEVIRTUAL, ownerName, getMappedName("getCompleteReport"), getFullType));
+//		injectionList.insert(new VarInsnNode(ALOAD, 0));
+//		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("description"), descriptionType));
+//		injectionList.insert(new VarInsnNode(ALOAD, 0));
+//		injectionList.insert(new FieldInsnNode(GETFIELD, ownerName, getMappedName("cause"), causeType));
+		
+		// Apparently have to fill the injection list backwards. Not even going to question it.
 		injectionList.insert(new MethodInsnNode(INVOKESTATIC, targetClassName, targetMethodName, String.format(targetMethodType, descriptionType, causeType, descriptionType)));
+		injectionList.insert(new MethodInsnNode(INVOKEVIRTUAL, ownerName, getMappedName("getCompleteReport"), getFullType));
+		injectionList.insert(new VarInsnNode(ALOAD, 0));
+		injectionList.insert(new VarInsnNode(ALOAD, 2)); // Get second constructor param (Throwable)
+		injectionList.insert(new VarInsnNode(ALOAD, 1)); // Get first constructor param (String)
 		
 		// Inject instructions into target method
 		targetNode.instructions.insert(targetNode.instructions.get(index), injectionList);
 		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		cn.accept(cw);
+		
 		return cw.toByteArray();
 	}
 	

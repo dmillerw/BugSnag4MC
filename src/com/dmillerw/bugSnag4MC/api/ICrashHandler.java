@@ -2,7 +2,7 @@ package com.dmillerw.bugSnag4MC.api;
 
 import java.util.HashMap;
 
-public interface IBugSnagHandler {
+public interface ICrashHandler {
 
 	public String getModID();
 	
@@ -13,5 +13,7 @@ public interface IBugSnagHandler {
 	public String getAPIKey();
 	
 	public void fillUserData(HashMap<String, String> map);
+	
+	public void onCrash(String description, Throwable throwable);
 	
 }
