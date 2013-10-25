@@ -8,10 +8,12 @@ import com.dmillerw.bugSnag4MC.api.IMetaData;
 public class BasicCrashHandler implements ICrashHandler {
 
 	private final String modID;
+	private final String basePackage;
 	private final String apiKey;
 	
-	public BasicCrashHandler(String modID, String apiKey) {
+	public BasicCrashHandler(String modID, String basePackage, String apiKey) {
 		this.modID = modID;
+		this.basePackage = basePackage;
 		this.apiKey = apiKey;
 	}
 	
@@ -21,13 +23,18 @@ public class BasicCrashHandler implements ICrashHandler {
 	}
 
 	@Override
-	public String getBasePackage() {
-		return null;
+	public String[] getBasePackages() {
+		return (basePackage != null && basePackage.length() > 0) ? new String[] {basePackage} : null;
 	}
 
 	@Override
+	public String[] getAdditionalPackages() {
+		return null;
+	}
+	
+	@Override
 	public boolean submitRelatedCrashesOnly() {
-		return false;
+		return (basePackage != null && basePackage.length() > 0);
 	}
 
 	@Override

@@ -24,22 +24,4 @@ public class InternalAPIHandler {
 		registeredClients.put(handler.getModID(), new Client(handler.getAPIKey()));
 	}
 	
-	public static void handleBasicIMC(String modID, String apiKey) {
-		registerHandler(new BasicCrashHandler(modID, apiKey));
-	}
-	
-	public static void handleAdvIMC(String modID, String classLocation) {
-		try {
-			ICrashHandler handler = (ICrashHandler) Class.forName(classLocation).newInstance();
-			registerHandler(handler);
-		} catch (InstantiationException e) {
-			FMLLog.warning("[" + Constants.ID + "] " + modID + " tried to register a crash handler, but an instance of the specified class could not be created!", new Object[0]);
-		} catch (IllegalAccessException e) {
-			// Huh?
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			FMLLog.warning("[" + Constants.ID + "] " + modID + " tried to register a crash handler, but the specified class could not be found!", new Object[0]);
-		}
-	}
-	
 }
