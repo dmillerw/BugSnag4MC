@@ -12,8 +12,8 @@ public interface ICrashHandler {
 
 	public String getAPIKey();
 	
-	public void fillUserData(HashMap<String, String> map);
+	public void fillUserData(IMetaData meta);
 	
-	public void onCrash(String description, Throwable throwable);
+	public boolean onCrash(String description, Throwable throwable);
 	
 }
