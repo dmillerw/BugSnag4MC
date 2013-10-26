@@ -1,4 +1,4 @@
-package com.dmillerw.bugSnag4MC.core;
+package com.dmillerw.bugSnag4MC.api;
 
 import com.dmillerw.bugSnag4MC.api.ICrashHandler;
 import com.dmillerw.bugSnag4MC.api.IMetaData;
