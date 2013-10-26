@@ -1,11 +1,13 @@
 package com.dmillerw.bugSnag4MC;
 
-import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.Map;
 
 import com.dmillerw.bugSnag4MC.api.Constants;
 
+import net.minecraft.launchwrapper.LaunchClassLoader;
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.CoreModManager;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
@@ -15,23 +17,29 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 @TransformerExclusions("com.dmillerw.bugSnag4MC")
 public class BS4MCLoader implements IFMLLoadingPlugin {
 
-	public static boolean deobf;
-
-	public static File dependDir;
+	public static boolean deobf = true;
+	public static boolean deobfSet;
 	
 	public BS4MCLoader() {
-		if (dependDir != null) {
-			return;
-		}
-
-		try {
-			Field field = CoreModManager.class.getDeclaredField("mcDir");
-			field.setAccessible(true);
-			File minecraftDir = (File) field.get(null);
-			dependDir = new File(minecraftDir, "mods" + File.pathSeparator + Constants.ID.toLowerCase() + File.pathSeparator + "dependencies");
-			dependDir.mkdirs();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+        if (!deobfSet) {
+        	try {
+        		Field deobfField = CoreModManager.class.getDeclaredField("deobfuscatedEnvironment");
+            	deobfField.setAccessible(true);
+            	deobf = deobfField.getBoolean(null);
+            	deobfSet = true;
+        	} catch(Exception ex) {
+        		FMLLog.info("[" + Constants.ID + "] Failed to get deobf variable! Assuming false.", new Object[0]);
+        		deobf = false;
+        	}
+        }
+		
+		if (!deobf) {
+			URL bugsnag = this.getClass().getResource("/lib/bugsnag.jar");
+			URL json = this.getClass().getResource("/lib/json.jar");
+			
+			LaunchClassLoader classLoader = (LaunchClassLoader)BS4MCLoader.class.getClassLoader();
+			classLoader.addURL(bugsnag);
+			classLoader.addURL(json);
 		}
 	}
 	
@@ -57,7 +65,7 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
 
 	@Override
 	public void injectData(Map<String, Object> data) {
-		deobf = (Boolean)data.get("runtimeDeobfuscationEnabled");
+		
 	}
 
 }
