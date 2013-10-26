@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Remote IO" default="install" basedir=".">
+<project name="BugSnag4MC" default="install" basedir=".">
+   
+   <manifest file="MANIFEST.MF">
+        <attribute name="Manifest-Version" value="1.0" />
+        <attribute name="FMLCorePlugin" value="com.dmillerw.bugSnag4MC.BS4MCLoader"/>  
+   </manifest>
+
    <!-- Versions -->
    <property name="major.ver" value="1" />
    <property name="minor.ver" value="0" />
