@@ -49,8 +49,8 @@
    <!-- Dependencies -->
    <target name="copy-bs4mc-api">
       <delete dir="${api.dir}/com" />
-      <copy todir="${mcpsrc.dir}/com/dmillerw/bugSnag4MC/api">
-         <fileset dir="${src.dir}/com" />
+      <copy todir="${api.dir}">
+         <fileset dir="${src.dir}/com/dmillerw/bugSnag4MC/api" />
       </copy>
    </target>
    <target name="distribute-api" depends="copy-bs4mc-api">
