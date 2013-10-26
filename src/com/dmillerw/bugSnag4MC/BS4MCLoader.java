@@ -24,9 +24,9 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
         if (!deobfSet) {
         	try {
         		Field deobfField = CoreModManager.class.getDeclaredField("deobfuscatedEnvironment");
-            	deobfField.setAccessible(true);
-            	deobf = deobfField.getBoolean(null);
-            	deobfSet = true;
+            		deobfField.setAccessible(true);
+            		deobf = deobfField.getBoolean(null);
+            		deobfSet = true;
         	} catch(Exception ex) {
         		FMLLog.info("[" + Constants.ID + "] Failed to get deobf variable! Assuming false.", new Object[0]);
         		deobf = false;
@@ -50,12 +50,12 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
 
 	@Override
 	public String[] getASMTransformerClass() {
-		return new String[] {"com.dmillerw.bugSnag4MC.asm.BS4MCTransformer"};
+		return new String[] {BS4MCTransformer.class.getName()};
 	}
 
 	@Override
 	public String getModContainerClass() {
-		return "com.dmillerw.bugSnag4MC.BS4MCCore";
+		return BS4MCCore.class.getName();
 	}
 
 	@Override
