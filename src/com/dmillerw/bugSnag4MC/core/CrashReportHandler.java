@@ -8,6 +8,8 @@ import com.bugsnag.Client;
 import com.bugsnag.MetaData;
 import com.dmillerw.bugSnag4MC.api.ICrashHandler;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+
 public class CrashReportHandler {
 
 	public static void handleCrashReport(String description, Throwable thrown, String completeReport) {
@@ -54,8 +56,9 @@ public class CrashReportHandler {
 			crashHandler.fillUserData(metaData);
 			metaData.add("Minecraft", "Description", description);
 			metaData.add("Minecraft", "Crash Log", completeReport);
+			metaData.add("Minecraft", "Side", FMLCommonHandler.instance().getEffectiveSide().toString());
 			
-			if (crashHandler.onCrash(description, thrown) && sendFlag) {
+			if (crashHandler.onCrash(description, thrown, metaData) && sendFlag) {
 				client.notify(thrown, metaData.meta);
 			}
 		}

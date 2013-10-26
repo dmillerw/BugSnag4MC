@@ -1,6 +1,5 @@
 package com.dmillerw.bugSnag4MC.api;
 
-import java.util.HashMap;
 
 public interface ICrashHandler {
 
@@ -22,9 +21,9 @@ public interface ICrashHandler {
 	/** Custom data to be sent along with the crash report. The description of the crash, the side that crashed (SERVER/CLIENT) and Minecraft's full crash report are already sent */
 	public void fillUserData(IMetaData meta);
 	
-	/** Extra code to run when Minecraft itself crashes 
+	/** Extra code to run when Minecraft crashes 
 	 * @return Whether or not the crash report should be sent 
 	 */
-	public boolean onCrash(String description, Throwable throwable);
+	public boolean onCrash(String description, Throwable throwable, IMetaData meta);
 	
 }

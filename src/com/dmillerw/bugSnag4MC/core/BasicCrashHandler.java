@@ -1,7 +1,5 @@
 package com.dmillerw.bugSnag4MC.core;
 
-import java.util.HashMap;
-
 import com.dmillerw.bugSnag4MC.api.ICrashHandler;
 import com.dmillerw.bugSnag4MC.api.IMetaData;
 
@@ -48,7 +46,7 @@ public class BasicCrashHandler implements ICrashHandler {
 	}
 
 	@Override
-	public boolean onCrash(String description, Throwable throwable) {
+	public boolean onCrash(String description, Throwable throwable, IMetaData meta) {
 		return true;
 	}
 
