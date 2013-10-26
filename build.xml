@@ -47,13 +47,13 @@
       </or>
    </condition>
    <!-- Dependencies -->
-   <target name="copy-api">
+   <target name="copy-bs4mc-api">
       <delete dir="${api.dir}/com" />
       <copy todir="${mcpsrc.dir}/com/dmillerw/bugSnag4MC/api">
          <fileset dir="${src.dir}/com" />
       </copy>
    </target>
-   <target name="distribute-api" depends="copy-api">
+   <target name="distribute-api" depends="copy-bs4mc-api">
       <delete>
          <fileset dir="${dist.dir}">
             <include name="BugSnag4MC-api*" />
