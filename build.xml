@@ -19,6 +19,7 @@
    <property name="lib.dir" value="lib" />
    <property name="build.dir" value="build/${minecraft.version}" />
    <property name="classes.dir" value="${build.dir}/packaging" />
+   <property name="api.dir" value="${build.dir}/packaging-api" />
    <property name="forge.dir" value="${build.dir}/forge" />
    <property name="dist.dir" value="dist" />
    <property name="mcp.dir" value="${forge.dir}/mcp" />
@@ -46,6 +47,21 @@
       </or>
    </condition>
    <!-- Dependencies -->
+   <target name="copy-api">
+      <delete dir="${api.dir}/com" />
+      <copy todir="${mcpsrc.dir}/com/dmillerw/bugSnag4MC/api">
+         <fileset dir="${src.dir}/com" />
+      </copy>
+   </target>
+   <target name="distribute-api" depends="copy-api">
+      <delete>
+         <fileset dir="${dist.dir}">
+            <include name="BugSnag4MC-api*" />
+         </fileset>
+      </delete>
+      <jar destfile="${dist.dir}/BugSnag4MC-api${fullversion}.jar" basedir="${api.dir}"/>
+      <delete dir="${api.dir}" />
+   </target>
    <target name="install" depends="build">
       <delete>
          <fileset dir="${dist.dir}">

@@ -38,10 +38,12 @@ public class CrashReportHandler {
 							}
 						}
 						
-						for (String pack : additionalPackages) {
-							if (traceElement.getClassName().contains(pack)) {
-								sendFlag = true;
-								break;
+						if (additionalPackages != null) {
+							for (String pack : additionalPackages) {
+								if (traceElement.getClassName().contains(pack)) {
+									sendFlag = true;
+									break;
+								}
 							}
 						}
 					}
