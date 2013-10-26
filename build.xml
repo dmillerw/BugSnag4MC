@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="BugSnag4MC" default="install" basedir=".">
+   
+   <manifest file="MANIFEST.MF">
+        <attribute name="Manifest-Version" value="1.0" />
+        <attribute name="FMLCorePlugin" value="com.dmillerw.bugSnag4MC.BS4MCLoader"/>  
+   </manifest>
+
    <!-- Versions -->
    <property name="major.ver" value="1" />
    <property name="minor.ver" value="0" />
@@ -52,10 +58,6 @@
             <include name="BugSnag4MC*" />
          </fileset>
       </delete>
-	  <manifest file="MANIFEST.MF">
-        <attribute name="Manifest-Version" value="1.0" />
-        <attribute name="FMLCorePlugin" value="com.dmillerw.bugSnag4MC.BS4MCLoader"/>  
-      </manifest>
       <jar destfile="${dist.dir}/BugSnag4MC-${fullversion}.jar" basedir="${classes.dir}" />
       <delete dir="${classes.dir}" />
    </target>
