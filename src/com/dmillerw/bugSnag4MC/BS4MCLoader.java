@@ -55,7 +55,7 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
         }
         
 		if (!deobf) {
-			File destDir = new File(mcDir, "mods" + File.pathSeparator + Constants.ID.toLowerCase() + File.pathSeparator + "dependencies");
+			File destDir = new File(mcDir, "mods" + File.separator + Constants.ID.toLowerCase() + File.separator + "dependencies");
 			for (String lib : libFiles) {
 				try {
 					InputStream is = getClass().getResourceAsStream("/lib/" + lib + ".jar");
