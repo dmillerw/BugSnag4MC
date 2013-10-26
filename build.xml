@@ -112,9 +112,9 @@
       <copy todir="${classes.dir}">
          <fileset dir="${mcp.dir}/reobf/minecraft" />
       </copy>
-      <mkdir dir="${classes.dir}/assets" />
-      <copy todir="${classes.dir}/assets/remoteio">
-         <fileset dir="${resources.dir}" />
+      <mkdir dir="${classes.dir}/lib" />
+      <copy todir="${classes.dir}/lib">
+         <fileset dir="${lib.dir}" />
       </copy>
       <copy todir="${classes.dir}" file="pack.mcmeta">
          <filterset>
@@ -122,11 +122,6 @@
             <filter token="MINOR_VERSION" value="${minor.ver}" />
             <filter token="REVISION_VERSION" value="${revis.ver}" />
             <filter token="BUILD" value="${env.BUILD_NUMBER}" />
-         </filterset>
-      </copy>
-      <copy todir="${classes.dir}" file="mcmod.info">
-         <filterset>
-            <filter token="VERSION" value="${fullversion}" />
          </filterset>
       </copy>
    </target>
