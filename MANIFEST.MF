@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-FMLCorePlugin: src.com.dmillerw.bugSnag4MC.BS4MCLoader
+FMLCorePlugin: com.dmillerw.bugSnag4MC.BS4MCLoader
