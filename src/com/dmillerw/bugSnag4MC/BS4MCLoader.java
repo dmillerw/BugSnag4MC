@@ -57,11 +57,17 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
 		if (!deobf) {
 			File destDir = new File(mcDir, "mods" + File.separator + Constants.ID.toLowerCase() + File.separator + "dependencies");
 			for (String lib : libFiles) {
-				try {
-					InputStream is = getClass().getResourceAsStream("/lib/" + lib + ".jar");
-					FileUtils.copyInputStreamToFile(is, new File(destDir, lib + ".jar"));
-				} catch(IOException ex) {
-					FMLLog.info("[" + Constants.ID + "] Failed to extract library: [" + lib + ".jar" + "]", new Object[0]);
+				if (!new File(destDir, lib + ".jar").exists()) {
+					FMLLog.info("[" + Constants.ID + "] Couldn't find " + lib + ".jar. Extracting...", new Object[0]);
+					
+					try {
+						InputStream is = getClass().getResourceAsStream("/lib/" + lib + ".jar");
+						FileUtils.copyInputStreamToFile(is, new File(destDir, lib + ".jar"));
+					} catch(IOException ex) {
+						FMLLog.info("[" + Constants.ID + "] Failed to extract library: [" + lib + ".jar" + "]", new Object[0]);
+					}
+				} else {
+					FMLLog.info("[" + Constants.ID + "] Found " + lib + ".jar. Skipping...", new Object[0]);
 				}
 			}
 			
