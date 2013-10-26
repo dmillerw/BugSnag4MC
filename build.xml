@@ -52,11 +52,13 @@
             <include name="BugSnag4MC*" />
          </fileset>
       </delete>
-	  <manifest file="MANIFEST.MF">
+      
+      <manifest file="MANIFEST.MF" mode="update">
         <attribute name="Manifest-Version" value="1.0" />
         <attribute name="FMLCorePlugin" value="com.dmillerw.bugSnag4MC.BS4MCLoader"/>  
       </manifest>
       <jar destfile="${dist.dir}/BugSnag4MC-${fullversion}.jar" basedir="${classes.dir}" />
+      
       <delete dir="${classes.dir}" />
    </target>
    <target name="rebuild" depends="clean,install" />
