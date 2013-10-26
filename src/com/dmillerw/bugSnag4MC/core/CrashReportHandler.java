@@ -17,8 +17,6 @@ public class CrashReportHandler {
 			return; // Ignoring fake crashes by FML/Forge
 		}
 		
-		StackTraceElement last = thrown.getStackTrace()[0];
-		
 		for (Entry<String, ICrashHandler> handler : InternalAPIHandler.registeredHandlers.entrySet()) {
 			ICrashHandler crashHandler = handler.getValue();
 			
@@ -32,17 +30,19 @@ public class CrashReportHandler {
 			
 			if (basePackages != null) {
 				if (crashHandler.submitRelatedCrashesOnly()) {
-					for (String pack : basePackages) {
-						if (last.getClassName().contains(pack)) {
-							sendFlag = true;
-							break;
+					for (StackTraceElement traceElement : thrown.getStackTrace()) {
+						for (String pack : basePackages) {
+							if (traceElement.getClassName().contains(pack)) {
+								sendFlag = true;
+								break;
+							}
 						}
-					}
-					
-					for (String pack : additionalPackages) {
-						if (last.getClassName().contains(pack)) {
-							sendFlag = true;
-							break;
+						
+						for (String pack : additionalPackages) {
+							if (traceElement.getClassName().contains(pack)) {
+								sendFlag = true;
+								break;
+							}
 						}
 					}
 				} else {
