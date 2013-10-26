@@ -59,7 +59,7 @@
             <include name="BugSnag4MC-api*" />
          </fileset>
       </delete>
-      <jar destfile="${dist.dir}/BugSnag4MC-api-${fullversion}.jar" basedir="${api.dir}"/>
+      <zip destfile="${dist.dir}/BugSnag4MC-api-${fullversion}.jar" basedir="${api.dir}"/>
       <delete dir="${api.dir}" />
    </target>
    <target name="install" depends="build">
