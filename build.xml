@@ -49,7 +49,7 @@
    <!-- Dependencies -->
    <target name="copy-bs4mc-api">
       <delete dir="${api.dir}/com" />
-      <copy todir="${api.dir}">
+      <copy todir="${api.dir}/com/dmillerw/bugSnag4MC/api">
          <fileset dir="${src.dir}/com/dmillerw/bugSnag4MC/api" />
       </copy>
    </target>
@@ -59,7 +59,7 @@
             <include name="BugSnag4MC-api*" />
          </fileset>
       </delete>
-      <jar destfile="${dist.dir}/BugSnag4MC-api${fullversion}.jar" basedir="${api.dir}"/>
+      <jar destfile="${dist.dir}/BugSnag4MC-api-${fullversion}.jar" basedir="${api.dir}"/>
       <delete dir="${api.dir}" />
    </target>
    <target name="install" depends="build">
