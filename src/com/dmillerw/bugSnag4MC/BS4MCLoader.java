@@ -1,12 +1,19 @@
 package com.dmillerw.bugSnag4MC;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.Map;
 
-import com.dmillerw.bugSnag4MC.api.Constants;
-
 import net.minecraft.launchwrapper.LaunchClassLoader;
+
+import org.apache.commons.io.FileUtils;
+
+import com.dmillerw.bugSnag4MC.api.Constants;
+import com.dmillerw.bugSnag4MC.asm.BS4MCTransformer;
+
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.relauncher.CoreModManager;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
@@ -17,8 +24,12 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 @TransformerExclusions("com.dmillerw.bugSnag4MC")
 public class BS4MCLoader implements IFMLLoadingPlugin {
 
+	public static File mcDir;
+	
 	public static boolean deobf = true;
 	public static boolean deobfSet;
+	
+	public static String[] libFiles = new String[] {"bugsnag", "json"};
 	
 	public BS4MCLoader() {
         if (!deobfSet) {
@@ -33,13 +44,36 @@ public class BS4MCLoader implements IFMLLoadingPlugin {
         	}
         }
 		
+        if (mcDir == null) {
+        	try {
+        		Field mcDirField = CoreModManager.class.getDeclaredField("mcDir");
+        			mcDirField.setAccessible(true);
+            		mcDir = (File) mcDirField.get(null);
+        	} catch(Exception ex) {
+        		FMLLog.info("[" + Constants.ID + "] Failed to get Minecraft directory.", new Object[0]);
+        	}
+        }
+        
 		if (!deobf) {
-			URL bugsnag = this.getClass().getResource("/lib/bugsnag.jar");
-			URL json = this.getClass().getResource("/lib/json.jar");
+			File destDir = new File(mcDir, "mods" + File.pathSeparator + Constants.ID.toLowerCase() + File.pathSeparator + "dependencies");
+			for (String lib : libFiles) {
+				try {
+					InputStream is = getClass().getResourceAsStream("/lib/" + lib + ".jar");
+					FileUtils.copyInputStreamToFile(is, new File(destDir, lib + ".jar"));
+				} catch(IOException ex) {
+					FMLLog.info("[" + Constants.ID + "] Failed to extract library: [" + lib + ".jar" + "]", new Object[0]);
+				}
+			}
 			
-			LaunchClassLoader classLoader = (LaunchClassLoader)BS4MCLoader.class.getClassLoader();
-			classLoader.addURL(bugsnag);
-			classLoader.addURL(json);
+			LaunchClassLoader classLoader = (LaunchClassLoader)getClass().getClassLoader();
+			
+			for (File file : destDir.listFiles()) {
+				try {
+					classLoader.addURL(file.toURI().toURL());
+				} catch(MalformedURLException ex) {
+					FMLLog.info("[" + Constants.ID + "] Failed to add library to classpath: [" + file.getName() + "]", new Object[0]);
+				}
+			}
 		}
 	}
 	
